@@ -1,0 +1,86 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f0f0f0;
+}
+
+.container, .home-container {
+    text-align: center;
+    width: 100%;
+}
+
+.home-container h1 {
+    font-size: 48px;
+    margin-bottom: 40px;
+}
+
+.options {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.option label {
+    font-size: 20px;
+}
+
+.option select {
+    padding: 8px;
+    font-size: 16px;
+}
+
+#map {
+    height: 60vh;
+    width: 68vw;
+    margin: 20px auto;
+    border: 2px solid #333;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    margin: 5px;
+}
+
+#result {
+    font-size: 18px;
+    margin-top: 10px;
+    color: #333;
+}
+
+.game-over {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border: 2px solid #333;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    text-align: center;
+}
+
+.game-over h2 {
+    margin: 0 0 10px;
+}
+
+.game-over button {
+    margin: 10px; /* Increased spacing between buttons */
+}
+
+.hidden {
+    display: none;
+}
