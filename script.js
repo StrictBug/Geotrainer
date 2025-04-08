@@ -18,16 +18,16 @@ const selectedArea = urlParams.get('area') || 'All regions';
 function getInitialMapSettings(area) {
     switch (area) {
         case 'WA-S':
-            return { center: { lat: -30.0, lng: 120.5 }, zoom: 5 }; // Southern WA, updated
+            return { center: { lat: -30.0, lng: 120.5 }, zoom: 5 };
         case 'SA':
-            return { center: { lat: -31.0, lng: 135.5 }, zoom: 5 }; // South Australia, updated
+            return { center: { lat: -31.0, lng: 135.5 }, zoom: 5 };
         case 'VIC':
-            return { center: { lat: -37.0, lng: 144.0 }, zoom: 6 }; // Victoria, unchanged
+            return { center: { lat: -37.0, lng: 144.0 }, zoom: 6 };
         case 'TAS':
-            return { center: { lat: -42.0, lng: 146.0 }, zoom: 7 }; // Tasmania, zoom updated
+            return { center: { lat: -42.0, lng: 146.0 }, zoom: 7 };
         case 'All regions':
         default:
-            return { center: { lat: -25.2744, lng: 133.7751 }, zoom: 4 }; // All Australia
+            return { center: { lat: -25.2744, lng: 133.7751 }, zoom: 4 };
     }
 }
 
@@ -82,6 +82,7 @@ function initMap() {
                 position: event.latLng,
                 map: map
             });
+            document.getElementById("guess").disabled = false; // Enable Guess button after pin drop
         }
     });
 
@@ -96,10 +97,13 @@ function startNewRound() {
     }
 
     if (marker) marker.setMap(null);
+    marker = null;
     clearInterval(timer);
     document.getElementById("result").textContent = "";
     document.getElementById("guess").style.display = "inline";
+    document.getElementById("guess").disabled = true;
     document.getElementById("newGame").style.display = "inline";
+    document.getElementById("newGame").disabled = true; // Disable New Round at start
     document.getElementById("gameOver").classList.add("hidden");
 
     const mapSettings = getInitialMapSettings(selectedArea);
@@ -135,6 +139,7 @@ function endRound() {
     if (!marker) {
         document.getElementById("result").textContent = "Time's up! You didn’t guess. Score: 0 for this round.";
         round++;
+        document.getElementById("newGame").disabled = false; // Enable New Round after timeout
         if (round > maxRounds) {
             showGameOver();
         }
@@ -162,8 +167,10 @@ function endRound() {
     actualMarkers.push(actualMarker);
 
     map.setCenter(actual);
-    map.setZoom(8); // Your preferred end-of-round zoom
+    map.setZoom(8);
     document.getElementById("result").textContent = `Distance: ${distance.toFixed(2)} km | Points this round: ${points}`;
+    document.getElementById("guess").disabled = true;
+    document.getElementById("newGame").disabled = false; // Enable New Round after guess
     round++;
 
     if (round > maxRounds) {
@@ -184,12 +191,14 @@ function showGameOver() {
 
 // New game button
 document.getElementById("newGame").addEventListener("click", () => {
-    startNewRound();
+    if (!document.getElementById("newGame").disabled) {
+        startNewRound();
+    }
 });
 
 // Guess button to end round immediately
 document.getElementById("guess").addEventListener("click", () => {
-    if (timeLeft > 0) {
+    if (timeLeft > 0 && !document.getElementById("guess").disabled) {
         clearInterval(timer);
         endRound();
     }
