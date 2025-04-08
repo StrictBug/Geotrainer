@@ -8,6 +8,8 @@ let locations = [];
 let usedLocations = [];
 let round = 1;
 let maxRounds = 15;
+let roundHistory = [];
+let roundActive = false;
 
 // Get URL parameters
 const urlParams = new URLSearchParams(window.location.search);
@@ -76,13 +78,13 @@ function initMap() {
     });
 
     map.addListener("click", (event) => {
-        if (timeLeft > 0) {
+        if (timeLeft > 0 && roundActive) {
             if (marker) marker.setMap(null);
             marker = new google.maps.Marker({
                 position: event.latLng,
                 map: map
             });
-            document.getElementById("guess").disabled = false; // Enable Guess button after pin drop
+            document.getElementById("guess").disabled = false;
         }
     });
 
@@ -103,7 +105,7 @@ function startNewRound() {
     document.getElementById("guess").style.display = "inline";
     document.getElementById("guess").disabled = true;
     document.getElementById("newGame").style.display = "inline";
-    document.getElementById("newGame").disabled = true; // Disable New Round at start
+    document.getElementById("newGame").disabled = true;
     document.getElementById("gameOver").classList.add("hidden");
 
     const mapSettings = getInitialMapSettings(selectedArea);
@@ -123,6 +125,7 @@ function startNewRound() {
 
     timeLeft = 15;
     document.getElementById("timer").textContent = `Time left: ${timeLeft}s`;
+    roundActive = true;
 
     timer = setInterval(() => {
         timeLeft--;
@@ -136,10 +139,16 @@ function startNewRound() {
 
 // End the round and calculate score
 function endRound() {
+    let distance = 0;
+    let points = 0;
+
+    roundActive = false;
+
     if (!marker) {
+        roundHistory.push({ location: actualLocation.name, distance: '-', points: 0 });
         document.getElementById("result").textContent = "Time's up! You didn’t guess. Score: 0 for this round.";
         round++;
-        document.getElementById("newGame").disabled = false; // Enable New Round after timeout
+        document.getElementById("newGame").disabled = false;
         if (round > maxRounds) {
             showGameOver();
         }
@@ -154,9 +163,18 @@ function endRound() {
         return;
     }
 
-    const distance = google.maps.geometry.spherical.computeDistanceBetween(guess, actual) / 1000;
-    const points = Math.max(0, 1000 - Math.floor(distance));
+    distance = google.maps.geometry.spherical.computeDistanceBetween(guess, actual) / 1000;
+    
+    if (distance <= 5) {
+        points = 1000;
+    } else if (distance >= 100) {
+        points = 0;
+    } else {
+        points = Math.floor(1000 - ((distance - 5) * (1000 / 95)));
+    }
     score += points;
+
+    roundHistory.push({ location: actualLocation.name, distance: distance.toFixed(1), points }); // 1 decimal place
 
     document.getElementById("score").textContent = `Score: ${score}`;
     const actualMarker = new google.maps.Marker({
@@ -168,9 +186,9 @@ function endRound() {
 
     map.setCenter(actual);
     map.setZoom(8);
-    document.getElementById("result").textContent = `Distance: ${distance.toFixed(2)} km | Points this round: ${points}`;
+    document.getElementById("result").textContent = `Distance: ${distance.toFixed(1)} km | Points this round: ${points}`; // 1 decimal place
     document.getElementById("guess").disabled = true;
-    document.getElementById("newGame").disabled = false; // Enable New Round after guess
+    document.getElementById("newGame").disabled = false;
     round++;
 
     if (round > maxRounds) {
@@ -178,7 +196,7 @@ function endRound() {
     }
 }
 
-// Show game over notification
+// Show game over notification with table
 function showGameOver() {
     document.getElementById("location").textContent = "";
     document.getElementById("timer").textContent = "";
@@ -186,7 +204,20 @@ function showGameOver() {
     document.getElementById("newGame").style.display = "none";
     document.getElementById("guess").style.display = "none";
     document.getElementById("gameOver").classList.remove("hidden");
-    document.getElementById("finalScore").textContent = `Your final score is ${score}. Want to play again?`;
+
+    const summaryDiv = document.getElementById("roundSummary");
+    let tableHTML = '<table><tr><th>Round</th><th>Location</th><th>Distance (km)</th><th>Points</th></tr>';
+    
+    roundHistory.forEach((roundData, index) => {
+        tableHTML += `<tr><td>${index + 1}</td><td>${roundData.location}</td><td>${roundData.distance}</td><td>${roundData.points}</td></tr>`;
+    });
+
+    const totalDistance = roundHistory.reduce((sum, round) => sum + (round.distance === '-' ? 0 : parseFloat(round.distance)), 0).toFixed(1); // 1 decimal place
+    const totalPoints = roundHistory.reduce((sum, round) => sum + round.points, 0);
+    tableHTML += `<tr class="total-row"><td colspan="2">Total</td><td>${totalDistance}</td><td>${totalPoints}</td></tr>`;
+    tableHTML += '</table>';
+
+    summaryDiv.innerHTML = tableHTML;
 }
 
 // New game button
@@ -209,6 +240,7 @@ document.getElementById("playAgain").addEventListener("click", () => {
     score = 0;
     round = 1;
     usedLocations = [];
+    roundHistory = [];
     actualMarkers.forEach(m => m.setMap(null));
     actualMarkers = [];
     document.getElementById("score").textContent = `Score: ${score}`;

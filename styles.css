@@ -8,20 +8,28 @@ body {
     background-color: #f0f0f0;
 }
 
-.container, .home-container {
-    text-align: center;
+.home-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
     width: 100%;
 }
 
-.home-container h1 {
+.content {
+    text-align: center;
+}
+
+.content h1 {
     font-size: 48px;
-    margin-bottom: 40px;
+    margin: 0 0 20px; /* Reduced from 40px, equal to button's top margin */
 }
 
 .options {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    margin-bottom: 20px; /* Equal to h1's bottom margin */
 }
 
 .option {
@@ -71,14 +79,40 @@ button {
     border-radius: 5px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     text-align: center;
+    max-height: 80vh;
+    overflow-y: auto;
 }
 
 .game-over h2 {
     margin: 0 0 10px;
 }
 
-.game-over button {
-    margin: 10px; /* Increased spacing between buttons */
+.game-over table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+}
+
+.game-over th, .game-over td {
+    border: 1px solid #333;
+    padding: 8px;
+    text-align: left;
+}
+
+.game-over th {
+    background-color: #f0f0f0;
+}
+
+.game-over .total-row {
+    font-weight: bold;
+}
+
+.game-over-buttons {
+    margin-top: 10px;
+}
+
+.game-over-buttons button {
+    margin: 5px;
 }
 
 .hidden {
